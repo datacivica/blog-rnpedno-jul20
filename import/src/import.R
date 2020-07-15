@@ -46,13 +46,6 @@ input_lcv <- vector(mode = "list")
 input_lsv <- vector(mode = "list")
 input_d <- vector(mode = "list")
 
-#Archivos del output
-files_output = list(
-  lcv =  here("import/output/lcv.rds"),
-  lsv =  here("import/output/lsv.rds"),
-  d =  here("import/output/d.rds")
-)
-
 
 # Files de localizados con vida (lcv)
 for (i in cod_inegi) {
@@ -82,6 +75,7 @@ for (i in cod_inegi) {
   lsv_data <- rbind(lsv_data, data)
 } 
 rm(input_lsv)
+#Salen 3 warnings de lsv_04, lsv_08 y lsv_99 pero sí las está leyendo bien
 
 
 # Files de desaparecidos y no localizados (d)

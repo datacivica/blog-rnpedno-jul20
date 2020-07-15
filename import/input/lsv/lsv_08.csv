@@ -1,16 +1,3 @@
-Category,Hombre,Mujer,Indeterminado
-1.CIFRA SIN  AÑO DE REFERENCIA,1,0,1
-1980,1,0,0
-2006,0,1,0
-2007,4,0,0
-2008,10,1,0
-2009,6,6,0
-2010,37,10,0
-2011,25,1,0
-2012,21,1,0
-2013,28,2,0
-2014,32,0,0
-2015,47,3,0
-2016,37,5,0
-2017,43,2,0
-2018,129,12,0
+version https://git-lfs.github.com/spec/v1
+oid sha256:f2dcc383d4b95b12da95e6110cf4f6b0f0d3d439b5c24534e1fc5565e343f4fa
+size 255
