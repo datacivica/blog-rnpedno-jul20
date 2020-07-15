@@ -14,7 +14,7 @@ p_load(tidyverse, janitor, data.table, here, purrr)
 #Inputs y outputs generales
 files_input = list(
   cenapi = here("import/input/cenapi.csv"),
-  entidades = here("import/input/cenapi.csv"))
+  entidades = here("import/input/entidades_federativas.csv"))
 
 files_output = list(
   lcv =  here("import/output/lcv.rds"),
