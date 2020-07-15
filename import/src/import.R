@@ -11,6 +11,32 @@
 require(pacman)
 p_load(tidyverse, janitor, data.table, here, purrr)
 
+#Inputs y outputs generales
+files_input = list(
+  cenapi = here("import/input/cenapi.csv"),
+  entidades = here("import/input/cenapi.csv"))
+
+files_output = list(
+  lcv =  here("import/output/lcv.rds"),
+  lsv =  here("import/output/lsv.rds"),
+  d =  here("import/output/d.rds"),
+  cenapi = here("import/output/cenapi.rds"),
+  nom_ent = here("import/output/nom_ent.rds")
+)
+
+#CENAPI
+
+cenapi <- fread(files_input$cenapi) %>% clean_names()
+saveRDS(cenapi, files_output$cenapi)
+rm(cenapi)
+
+
+#Nombres entidades
+nom <- read.csv(files_input$entidades) %>% clean_names()
+saveRDS(nom, files_output$nom_ent)
+rm(nom)
+
+#RNPEDNO
 #Códigos del inegi para abrir archivos
 cod_inegi <- c(1:32) %>% formatC(width = 2, flag = "0", format = "d")
 cod_inegi <- append(cod_inegi,"99")
