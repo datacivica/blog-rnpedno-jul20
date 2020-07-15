@@ -32,7 +32,13 @@ rm(cenapi)
 
 
 #Nombres entidades
-nom <- read.csv(files_input$entidades) %>% clean_names()
+nom <- read.csv(files_input$entidades) %>% clean_names() %>% 
+  rename(cve_ent = clave_de_entidad, 
+         nom_ent = nombre_de_la_entidad_federativa) %>% 
+  mutate(cve_ent = formatC(cve_ent, width = 2, flag = "0", format = "d"))
+
+
+
 saveRDS(nom, files_output$nom_ent)
 rm(nom)
 
