@@ -6,43 +6,25 @@
 # License: (c) Data Cívica 2020
 #
 # ------------------------------------------------------------------------------------
-# descrip/src/heatmaps.R
+# descrip/src/grafs-comparacion.R
 
   
-# Archivos
+# Paquetes
 
 require(pacman)
-p_load(tidyverse, janitor, data.table, here, ggplot2, treemapify, egg, ggridges, 
-       ggmosaic, svglite)
+p_load(tidyverse, janitor, data.table, here, ggplot2, treemapify, 
+       egg, ggridges,ggmosaic, svglite, viridis)
 
-inp <- "C:\\Users\\oarev\\Documents\\alicia\\"
+# Inputs y outputs
 
-cenapi <- readRDS(paste0(inp, "clean-cenapi.rds")) %>% 
-  rename(status = vivo_muerto, year = year_evento, inegi = clave_estado,#estados comparados
-         nom_ent = nom_ent_evento) %>% 
-  mutate(n = 1, 
-         status = case_when(status == 'Aun sin localizar' ~ 'desaparecidos',
-                            status == "Localizado con vida" ~ 'localizado con vida',
-                            T ~ "localizado sin vida"),
-         fuente = "CENAPI") %>% 
-  group_by(year, sexo, inegi, status, nom_ent, fuente) %>% 
-  summarise(cuenta = sum (n)) %>% 
-  ungroup() %>% 
-  pivot_wider(names_from = sexo, values_from = cuenta) %>% 
-  select(year, Hombre, Mujer, inegi, status, nom_ent, fuente) %>% 
-  mutate(indeterminado = 0) %>% # No registran "indeterminados" pero queremos rbindear
-  clean_names()
+base <- readRDS(here("clean-data/output/desaparecidos.rds"))
 
-rnpedno <- readRDS(paste0(inp, "rnpedno.rds")) %>% 
-  mutate(fuente = "RNPEDNO") %>% 
-  filter(year >= 2000 & year <= 2018) #CENAPI tiene desde el 2000 y hasta el 2018, queremos comparar
+grafs_output = list(
+  graf1 = here("descrip/output/.svg"),
+  graf2 = here("descrip/output/.svg")
+)
 
-base <- rbind(rnpedno, cenapi) %>% 
-  pivot_longer(hombre:indeterminado, names_to = "sexo", values_to = "cuenta")
-
-rm (cenapi, rnpedno, inp)
-
-# Funciones utiles
+# Funciones útiles
 
 prcnt <- function(x,y) {
   round((x/y)*100, digits = 2)
@@ -152,3 +134,48 @@ ggplot(tempo, aes(x = fuente, y = nom_ent, fill = porc)) +
 
 
 # II. Scatters
+
+#i. viendo los años
+tempo <- base %>% 
+  group_by(fuente, year,inegi) %>% 
+  summarise(tot = sum (cuenta, na.rm = T)) %>% 
+  ungroup () %>% 
+  distinct() %>% 
+  pivot_wider(names_from = fuente, values_from = tot) %>% 
+  mutate(dif=RNPEDNO-CENAPI)
+
+ggplot(tempo, aes(x=CENAPI, y = RNPEDNO)) +
+  geom_point(aes(color=year)) +
+  geom_abline(intercept = 0, slope = 1, color = "blue") +
+  scale_color_viridis(discrete = TRUE, option = "D")
+
+
+
+#ii. viendo sexo
+tempo <- base %>% 
+  group_by(fuente, year,inegi, sexo) %>% 
+  summarise(tot = sum (cuenta, na.rm = T)) %>% 
+  ungroup () %>% 
+  distinct() %>% 
+  pivot_wider(names_from = fuente, values_from = tot) %>% 
+  filter(sexo != "indeterminado")
+
+ggplot(tempo, aes(x=CENAPI, y = RNPEDNO)) +
+  geom_point(aes(color=sexo)) +
+  geom_abline(intercept = 0, slope = 1, color = "blue") +
+  scale_color_viridis(discrete = TRUE, option = "D")
+
+#iii. viendo status
+tempo <- base %>% 
+  group_by(fuente, year, inegi, status) %>% 
+  summarise(tot = sum (cuenta, na.rm = T)) %>% 
+  ungroup () %>% 
+  distinct() %>% 
+  pivot_wider(names_from = fuente, values_from = tot) 
+
+ggplot(tempo, aes(x=CENAPI, y = RNPEDNO)) +
+  geom_point(aes(color=status)) +
+  geom_abline(intercept = 0, slope = 1, color = "blue") +
+  scale_color_viridis(discrete = TRUE, option = "D")
+
+
