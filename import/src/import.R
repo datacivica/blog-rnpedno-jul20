@@ -9,12 +9,13 @@
 # rnpdno/import_rnpdno/src/import.R
 
 require(pacman)
-p_load(tidyverse, janitor, data.table, here, purrr)
+p_load(tidyverse, janitor, data.table, here, readxl)
 
 #Inputs y outputs generales
 files_input = list(
   cenapi = here("import/input/cenapi.csv"),
-  entidades = here("import/input/entidades_federativas.csv"))
+  entidades = here("import/input/entidades_federativas.csv"),
+  abreviaciones = here("import/input/Nombres_Estados.xlsx"))
 
 files_output = list(
   lcv =  here("import/output/lcv.rds"),
@@ -37,7 +38,11 @@ nom <- read.csv(files_input$entidades) %>% clean_names() %>%
          nom_ent = nombre_de_la_entidad_federativa) %>% 
   mutate(cve_ent = formatC(cve_ent, width = 2, flag = "0", format = "d"))
 
+abrev <- read_xlsx(files_input$abreviaciones) %>% 
+  clean_names() %>% 
+  mutate(cve_ent = formatC(cve_ent, width = 2, flag = "0", format = "d"))
 
+nom <- left_join(nom, abrev)
 
 saveRDS(nom, files_output$nom_ent)
 rm(nom)
