@@ -41,6 +41,7 @@ nom <- readRDS(files_input$ent_nom) %>% rename(inegi = cve_ent)
 datos <- left_join(datos, nom, by = c("inegi"))
 rm (nom)
 
+
 # Guardar base 
 
 saveRDS(datos, files_output$datos)
