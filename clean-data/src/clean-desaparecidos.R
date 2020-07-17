@@ -65,11 +65,12 @@ pob <- readRDS(files_input$pob) %>%
   
 # Juntamos todo
 base <- rbind(rnpedno, cenapi) %>% 
-  mutate(nom_ent = ifelse(nom_ent == "Veracruz de Ignacio de la Llave", "Veracruz", nom_ent)) %>% 
+  mutate(nom_ent = case_when(nom_ent == "Veracruz de Ignacio de la Llave" ~ "Veracruz", 
+                             nom_ent == "Coahuila de Zaragoza" ~ "Coahuila",
+                             nom_ent == "Michoacán de Ocampo" ~ "Michoacán",
+                             T ~ nom_ent)) %>% 
   pivot_longer(hombre:mujer, names_to = "sexo", values_to = "cuenta")  %>% 
- left_join(., pob) %>% mutate(nom_ent = case_when(nom_ent == "Coahuila de Zaragoza" ~ "Coahuila",
-                                                  nom_ent == "Michoacán de Ocampo" ~ "Michoacan",
-                                                  T ~ nom_ent))
+  left_join(., pob) 
 
 #Guardamos base final
 saveRDS(base, files_output$clean_desaparecidos)
