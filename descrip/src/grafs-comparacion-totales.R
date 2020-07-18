@@ -12,7 +12,7 @@
 # Paquetes
 
 require(pacman)
-p_load(tidyverse,  yaml, grid, janitor, data.table, here, ggplot2, treemapify, 
+p_load(tidyverse,  yaml, grid, janitor, here, ggplot2, 
        egg, ggridges,ggmosaic, svglite, viridis, scales, ggrepel)
 
 
@@ -28,13 +28,12 @@ g_output = list(
   g_5 = here("descrip/output/g_5.svg"),
   g_6 = here("descrip/output/g_6.svg"),
   g_7 = here("descrip/output/g_7.svg"),
-  g_8 = here("descrip/output/g_8.svg")
+  g_8 = here("descrip/output/g_8.svg"),
+  g_9 = here("descrip/output/g_9.svg")
   
 )
 
 # Tema
-
-
 tema <- theme_minimal() +
   theme(plot.title = element_text(size = 16, family = "Barlow Condensed", hjust = 0.5, face = "bold"),
         plot.subtitle = element_text(size = 12, family = "Barlow Condensed", hjust = 0.5),
@@ -46,13 +45,6 @@ tema <- theme_minimal() +
         strip.text = element_text(size = 12, face = "bold", family = "Barlow Condensed"))
 
 
-
-# Funciones útiles
-
-prcnt <- function(x,y) {
-  round((x/y)*100, digits = 2)
-}
-
 # Grafs
 
 # I. Heatmap
@@ -60,52 +52,32 @@ prcnt <- function(x,y) {
 
 tempo <- base %>% 
   group_by(fuente, nom_ent) %>% 
-  summarise(tot = sum (cuenta, na.rm = T), pob = sum (pob), tasa = (tot/pob)*100000) %>% 
+  summarise(tot = sum (cuenta, na.rm = T)) %>% 
   ungroup () %>% 
   distinct() %>% 
-  select(-c(tot, pob)) %>% 
   filter(nom_ent != "No Determinado")  %>% 
-  pivot_wider(names_from = fuente, values_from = tasa)  %>% 
+  pivot_wider(names_from = fuente, values_from = tot)  %>% 
   mutate(diferencia = RNPEDNO-CENAPI,
          cut = ifelse(diferencia<=0, 1, 0)) %>% 
-  pivot_longer(CENAPI:RNPEDNO, names_to = "fuente", values_to = "tasa") %>% 
+  pivot_longer(CENAPI:RNPEDNO, names_to = "fuente", values_to = "tot") %>% 
   arrange(desc(nom_ent))
 
-tempo2 <- tempo %>% select(nom_ent, diferencia) %>% 
-  distinct(nom_ent, .keep_all = T)
-
-
-ggplot(tempo, aes(x =  factor(fuente, levels = c("CENAPI", "RNPEDNO")), 
-                  y = nom_ent, fill = tasa)) +
-  geom_tile() +
-  scale_fill_continuous(low = "aliceblue", high = "midnightblue") +
-  labs(title = " Tasa de personas desaparecidas registradas por fuente y entidad",
-       subtitle = "Por cada 100,000 habitantes de 2000 a 2018",
-       x = "Fuente", y = "",
-       caption = "Fuente: CENAPI y RNPEDNO \n En los estados resaltados de rojo se registró mayor tasa de personas desaparecidas en el CENAPI que en el RNPEDNO") +
-  tema +
-  geom_text(aes(label = as.character(round(tasa, digits = 2)))) +
-  theme(axis.text.y = element_text(color = ifelse(tempo2$diferencia <= 0, "red", "black"))) 
-
-ggsave(g_output$g_1, width = 8, height = 12)
-
-#Otra opción
-
 g1 <- ggplot(tempo, aes(x =  factor(fuente, levels = c("CENAPI", "RNPEDNO")), 
-                  y = nom_ent, fill = tasa)) +
+                  y = nom_ent, fill = tot)) +
   geom_tile() +
   scale_fill_continuous(low = "aliceblue", high = "midnightblue") +
-  labs(title = " Tasa de personas desaparecidas registradas por fuente y entidad",
-       subtitle = "Por cada 100,000 habitantes de 2000 a 2018",
+  labs(title = "Personas desaparecidas, localizadas con o sin vida registradas",
+       subtitle = "Por fuente y entidad (2000 - 2018)",
        x = "Fuente", y = "",
-       caption = "Fuente: CENAPI y RNPEDNO ") +
+       caption = "Fuente: CENAPI y RNPDNO ") +
   tema +
-  geom_text(aes(label = as.character(round(tasa, digits = 2)))) 
+  geom_text(aes(label = as.character(round(tot, digits = 2))))  +
+  theme(legend.position = "none")
 
 
 tempo2 <- tempo %>% 
-  select(nom_ent, fuente, tasa) %>% 
-  pivot_wider(names_from = fuente, values_from = tasa)  %>% 
+  select(nom_ent, fuente, tot) %>% 
+  pivot_wider(names_from = fuente, values_from = tot)  %>% 
   mutate(diferencia = RNPEDNO-CENAPI) %>% 
   select(nom_ent, diferencia) %>% 
   group_by(nom_ent) %>% 
@@ -117,8 +89,8 @@ g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width =0.4)
   geom_tile() +
   tema +
   scale_fill_gradientn(colours = c("red","white","green"), 
-                       values = rescale(c(-1.7,0,9)),
-                       guide = "colorbar", limits=c(-1.7,9)) +
+                       values = rescale(c(-200,0,5000)),
+                       guide = "colorbar", limits=c(-200,5000)) +
   geom_text(aes(label = round(diferencia, digits = 2))) +
   theme(axis.text.y = element_blank(),
         plot.margin = unit(c(0.2,-0.4,0.2,0.2), "cm")) +
@@ -126,13 +98,13 @@ g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width =0.4)
 
 g3 <- egg::ggarrange(g1, g2, ncol = 2)
 
-ggsave(g_output$g_3, width = 8, height = 12)
+ggsave(g_output$g_3, g3, width = 8, height = 12)
 
 
 # i. Fuente y diferencia entre estados, por sexo
 tempo <- base %>%
   group_by(fuente, nom_ent, sexo) %>% 
-  summarise(tot = sum (cuenta, na.rm = T), pob = sum(pob), tasa = (tot/pob)*100000) %>% 
+  summarise(tot = sum (cuenta, na.rm = T)) %>% 
   ungroup () %>% 
   distinct() %>% 
   filter (sexo == "hombre" | sexo == "mujer") %>% 
@@ -140,8 +112,8 @@ tempo <- base %>%
 
 
 tempo2 <- tempo %>% 
-  select(nom_ent, fuente, tasa, sexo) %>% 
-  pivot_wider(names_from = fuente, values_from = tasa)  %>% 
+  select(nom_ent, fuente, tot, sexo) %>% 
+  pivot_wider(names_from = fuente, values_from = tot)  %>% 
   mutate(diferencia = RNPEDNO-CENAPI) %>% 
   select(nom_ent, sexo, diferencia) %>% 
   group_by(nom_ent) %>% 
@@ -150,24 +122,24 @@ tempo2 <- tempo %>%
   mutate(fuente = "diferencia")
 
 g1 <- ggplot(tempo, aes(x =  factor(fuente, levels = c("CENAPI", "RNPEDNO")), 
-                  y = nom_ent, fill = tasa)) +
+                  y = nom_ent, fill = tot)) +
   facet_wrap(~ sexo) +
   geom_tile() +
   tema +
   scale_fill_continuous(low = "aliceblue", high = "midnightblue") +
-  labs (title = "Tasa de personas desaparecidas registradas por fuente, sexo y entidad",
-              subtitle = "Por 100,000 de 2000 a 2018",
-        y = "", x = "Fuente", caption = "Fuente: CENAPI y RNPEDNO") +
-  geom_text(aes(label = round(tasa, digits = 2))) +
+  labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+        subtitle = "Por sexo, fuente y entidad (2000 - 2018)",
+        y = "", x = "Fuente", caption = "Fuente: CENAPI y RNPDNO") +
+  geom_text(aes(label = tot)) +
   theme(legend.position = "none")
   
 
-g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width =0.4)) +
+g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width = 0.4)) +
   geom_tile() +
   tema +
   scale_fill_gradientn(colours = c("red","white","green"), 
-                     values = rescale(c(-1.7,0,9)),
-                     guide = "colorbar", limits=c(-1.7,9)) +
+                     values = rescale(c(-700,0,5000)),
+                     guide = "colorbar", limits=c(-700,5000)) +
   geom_text(aes(label = round(diferencia, digits = 2))) +
   theme(axis.text.y = element_blank(),
         plot.margin = unit(c(0.2,-0.4,0.2,0.2), "cm")) +
@@ -175,20 +147,20 @@ g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width =0.4)
 
 g3 <- egg::ggarrange(g1, g2, ncol = 2)
 
-ggsave(g_output$g_2, width = 8, height = 12)
+ggsave(g_output$g_2, g3,width = 18, height = 12)
 
 # iii. Fuente y diferencia entre estados, por status
 
 tempo <- base %>%
   group_by(fuente, nom_ent, status) %>% 
-  summarise(tot = sum (cuenta, na.rm = T), pob = sum(pob), tasa = (tot/pob)*100000) %>% 
+  summarise(tot = sum (cuenta, na.rm = T)) %>% 
   ungroup () %>% 
   distinct() %>% 
   filter(nom_ent != "No Determinado")
 
 tempo2 <- tempo %>%
-  select(nom_ent, fuente, tasa, status) %>% 
-  pivot_wider(names_from = fuente, values_from = tasa)  %>% 
+  select(nom_ent, fuente, tot, status) %>% 
+  pivot_wider(names_from = fuente, values_from = tot)  %>% 
   mutate(diferencia = RNPEDNO-CENAPI) %>% 
   select(nom_ent, status, diferencia) %>% 
   group_by(nom_ent) %>% 
@@ -197,57 +169,133 @@ tempo2 <- tempo %>%
   mutate(fuente = "diferencia")
 
 g1 <- ggplot(tempo, aes(x =  factor(fuente, levels = c("CENAPI", "RNPEDNO")), 
-                  y = nom_ent, fill = tasa)) +
+                  y = nom_ent, fill = tot)) +
   facet_wrap(~ status) +
   geom_tile() +
   tema +
   scale_fill_continuous(low = "aliceblue", high = "midnightblue") +
-  labs (title = "Tasa de personas desaparecidas registradas por fuente, status y entidad",
-        subtitle = "Por 100,000 de 2000 a 2018",
+  labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+        subtitle = "Por status, fuente y entidad (2000 - 2018)",
         y = "", x = "Fuente", caption = "Fuente: CENAPI y RNPEDNO ") +
-  geom_text(aes(label = round(tasa, digits = 2))) +
+  geom_text(aes(label = tot)) +
   theme(legend.position = "none")
 
 g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width =0.4)) +
   geom_tile() +
   tema +
   scale_fill_gradientn(colours = c("red","white","green"), 
-                       values = rescale(c(-2,0,13)),
-                       guide = "colorbar", limits=c(-2,13)) +
+                       values = rescale(c(-700,0,4600)),
+                       guide = "colorbar", limits=c(-700,4600)) +
   geom_text(aes(label = round(diferencia, digits = 2))) +
   theme(axis.text.y = element_blank(),
         plot.margin = unit(c(0.2,-0.4,0.2,0.2), "cm")) +
   labs(y = "", x = "")
 g3 <- egg::ggarrange(g1, g2, ncol = 2)
 
-ggsave(g_output$g_4, width = 8, height = 12)
+ggsave(g_output$g_4, g3,width = 18, height = 12)
 
 # Scatter
 
-#iv. viendo estados
-
 tempo <- base %>% 
-  group_by(nom_ent2) %>% 
-  mutate(pob = sum(pob)) %>% 
-  ungroup () %>% 
-  group_by(fuente, nom_ent2, pob) %>% 
-  summarise(tasa = (sum(cuenta,na.rm = T)/pob)*100000) %>% 
+  filter(nom_ent!= "No Determinado") %>% 
+  group_by(fuente, nom_ent2) %>% 
+  summarise(tot = sum(cuenta, na.rm = T)) %>% 
   ungroup () %>% 
   distinct() %>% 
-  pivot_wider(names_from = fuente, values_from = tasa) 
+  pivot_wider(names_from = fuente, values_from = tot) 
 
 ggplot(tempo, aes(x=CENAPI, y = RNPEDNO)) +
   geom_point(shape = 21) +
   geom_label_repel(aes(label = nom_ent2), show.legend = F) +
   geom_abline(intercept = 0, slope = 1, color = "blue") +
   scale_color_viridis(discrete = TRUE, option = "D") +
-  labs (title = "Tasa de personas desaparecidas registradas por fuente y entidad",
-        subtitle = "Por cada 100,000 habitantes de 2000 a 2018",
-        caption = "Fuente: CENAPI y RNPEDNO") +
+  labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+        subtitle = "Por fuente y entidad (2000 - 2018)",
+        caption = "Fuente: CENAPI y RNPDNO") +
   tema
 
-ggsave(g_output$g_8, height = 12, width = 12)
+ggsave(g_output$g_5, height = 12, width = 12)
 
 # Fiebres
 
+tempo <- base %>% 
+  group_by(year,fuente) %>% 
+  summarise(tot = sum(cuenta, na.rm = T)) %>% 
+  ungroup() %>% 
+  distinct ()
 
+ ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
+  geom_line() +
+  scale_color_viridis(discrete = TRUE, option = "cividis") +
+   labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+         subtitle = "Por fuente  (2000 - 2018)",
+         caption = "Fuente: CENAPI y RNPDNO",
+         x = "", y = "") +
+  tema
+ 
+ ggsave(g_output$g_6, height = 12, width = 12)
+
+ #facetwrapeamos por sexo
+ 
+ tempo <- base %>% 
+   group_by(year, fuente, sexo) %>% 
+   summarise(tot = sum(cuenta, na.rm = T)) %>% 
+   ungroup() %>% 
+   distinct ()
+ 
+ ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
+   geom_line() +
+   facet_wrap(~sexo) +
+   scale_color_viridis(discrete = TRUE, option = "cividis") +
+   labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+         subtitle = "Por sexo y fuente  (2000 - 2018)",
+         caption = "Fuente: CENAPI y RNPDNO",
+         x = "", y = "") +
+   tema
+ 
+ ggsave(g_output$g_7, height = 12, width = 12)
+ 
+ 
+ #facetwrapeamos por status
+ 
+ tempo <- base %>% 
+   group_by(year, fuente, status) %>% 
+   summarise(tot = sum(cuenta, na.rm = T)) %>% 
+   ungroup() %>% 
+   distinct ()
+ 
+ ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
+   geom_line() +
+   facet_wrap(~status) +
+   scale_color_viridis(discrete = TRUE, option = "cividis") +
+   labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+         subtitle = "Por sexo y fuente  (2000 - 2018)",
+         caption = "Fuente: CENAPI y RNPDNO",
+         y = "", x ="") +
+   tema
+ 
+ ggsave(g_output$g_8, height = 12, width = 12)
+
+ #facetwrapeamos por entidad
+ 
+ tempo <- base %>% 
+   filter(nom_ent != "No Determinado") %>% 
+   group_by(year, fuente, nom_ent2) %>% 
+   summarise(tot = sum(cuenta, na.rm = T)) %>% 
+   ungroup() %>% 
+   distinct ()
+ 
+ ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
+   geom_line() +
+   facet_wrap(~nom_ent2, nrow = 4) +
+   scale_color_viridis(discrete = TRUE, option = "cividis") +
+   labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+         subtitle = "Por sexo y fuente  (2000 - 2018)",
+         caption = "Fuente: CENAPI y RNPDNO",
+         x = "", y = "") +
+   tema +
+   theme(axis.text.x = element_text(angle = 90))
+ 
+ ggsave(g_output$g_9, height = 12, width = 12)
+ 
+ 

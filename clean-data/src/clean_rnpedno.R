@@ -38,7 +38,7 @@ rm(lcv, lsv, d)
 
 # Cruzar con nombres
 nom <- readRDS(files_input$ent_nom) %>% rename(inegi = cve_ent)
-datos <- left_join(datos, nom, by = c("inegi"))
+datos <- left_join(datos, nom, by = c("inegi"))  # Anualizamos
 rm (nom)
 
 

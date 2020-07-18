@@ -1,17 +1,3 @@
-﻿"Category","Hombre","Mujer","Indeterminado"
-"0-4",5,0,0
-"5-9",0,2,0
-"10-14",5,8,0
-"15-19",13,24,0
-"20-24",8,4,0
-"25-29",3,8,1
-"30-34",4,1,0
-"35-39",3,2,0
-"40-44",1,1,0
-"45-49",4,0,0
-"50-54",3,0,0
-"55-59",3,1,0
-"60-64",1,0,0
-"75-79",0,1,0
-"MÁS DE 80",0,1,0
-"CIFRA SIN EDAD DE REFERENCIA",2,1,2
+version https://git-lfs.github.com/spec/v1
+oid sha256:9cf88d9afbb2bca5a836ff09da4c70d4bb7b3fce3aca704012f09a5510b52925
+size 296
