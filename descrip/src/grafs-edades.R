@@ -40,16 +40,15 @@ datos <- readRDS(files$datos)
 datos$gpo_edad <- ifelse(is.na(datos$gpo_edad), "Sin especificar", datos$gpo_edad)
 
 datos <- datos %>% 
-         mutate(gpo_edad = factor(gpo_edad, levels = c("Sin especificar",
-                                                       "De 0 a 4 años", "De 5 a 9 años", 
-                                                       "De 10 a 14 años", "De 15 a 19 años", 
-                                                       "De 20 a 24 años", "De 25 a 29 años", 
-                                                       "De 30 a 34 años","De 35 a 39 años",
-                                                       "De 40 a 44 años", "De 45 a 49 años", 
-                                                       "De 50 a 54 años", "De 55 a 59 años", 
-                                                       "De 60 a 64 años", "De 65 a 69 años", 
-                                                       "De 70 a 74 años","De 75 a 79 años",
-                                                       "De 80 años en adelante")))
+         mutate(gpo_edad = factor(gpo_edad, levels = c("Sin especificar", "De 80 años en adelante",
+                                                       "De 75 a 79 años", "De 70 a 74 años",
+                                                       "De 65 a 69 años", "De 60 a 64 años",
+                                                       "De 55 a 59 años", "De 50 a 54 años",
+                                                       "De 45 a 49 años", "De 40 a 44 años",
+                                                       "De 35 a 39 años", "De 30 a 34 años",
+                                                       "De 25 a 29 años", "De 20 a 24 años",
+                                                       "De 15 a 19 años", "De 10 a 14 años",
+                                                       "De 5 a 9 años", "De 0 a 4 años")))
 
 ##================== Gráficas ==================##
 tempo <- datos %>% 
