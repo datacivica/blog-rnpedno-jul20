@@ -12,8 +12,8 @@
 # Paquetes
 
 require(pacman)
-p_load(tidyverse,  yaml, grid, janitor, here, ggplot2, 
-       egg, ggridges,ggmosaic, svglite, viridis, scales, ggrepel)
+p_load(tidyverse,  yaml, grid, here, ggplot2, 
+       egg, ggridges, ggmosaic, svglite, viridis, scales, ggrepel)
 
 
 # Inputs y outputs
@@ -158,6 +158,7 @@ tempo <- base %>%
   distinct() %>% 
   filter(nom_ent != "No Determinado")
 
+
 tempo2 <- tempo %>%
   select(nom_ent, fuente, tot, status) %>% 
   pivot_wider(names_from = fuente, values_from = tot)  %>% 
@@ -260,7 +261,7 @@ tempo <- base %>%
    geom_ribbon(aes(ymin=CENAPI, ymax=RNPEDNO), fill = "lightyellow" , alpha = .5) +
    tema
  
- ggsave(g_output$g_7, height = 12, width = 12)
+ ggsave(g_output$g_7, height = 12, width = 16)
  
  
  #facetwrapeamos por status
@@ -283,7 +284,7 @@ tempo <- base %>%
          x = "", y = "", color = "Fuente") +
    geom_ribbon(aes(ymin=CENAPI, ymax=RNPEDNO), fill = "lightyellow" , alpha = .5) +
    tema
- ggsave(g_output$g_8, height = 12, width = 12)
+ ggsave(g_output$g_8, height = 12, width = 18)
 
  #facetwrapeamos por entidad
  
