@@ -38,6 +38,7 @@ cenapi <- readRDS(files_input$cenapi) %>%
          fuente = "CENAPI") %>% 
   group_by(year, sexo, inegi, status, nom_ent, fuente) %>% 
   summarise(cuenta = sum (n)) %>% 
+  mutate(cuenta = round(ifelse(year == 2018, cuenta*3, cuenta))) %>%  #Anualizamos 2018
   ungroup() %>% 
   pivot_wider(names_from = sexo, values_from = cuenta) %>% 
   select(year, Hombre, Mujer, inegi, status, nom_ent, fuente) %>% 
