@@ -89,8 +89,8 @@ g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width =0.4)
   geom_tile() +
   tema +
   scale_fill_gradientn(colours = c("red","white","green"), 
-                       values = rescale(c(-200,0,5000)),
-                       guide = "colorbar", limits=c(-200,5000)) +
+                       values = rescale(c(-1400,0,5000)),
+                       guide = "colorbar", limits=c(-1400,5000)) +
   geom_text(aes(label = round(diferencia, digits = 2))) +
   theme(axis.text.y = element_blank(),
         plot.margin = unit(c(0.2,-0.4,0.2,0.2), "cm")) +
@@ -138,8 +138,8 @@ g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width = 0.4
   geom_tile() +
   tema +
   scale_fill_gradientn(colours = c("red","white","green"), 
-                     values = rescale(c(-700,0,5000)),
-                     guide = "colorbar", limits=c(-700,5000)) +
+                     values = rescale(c(-1400,0,5000)),
+                     guide = "colorbar", limits=c(-1400,5000)) +
   geom_text(aes(label = round(diferencia, digits = 2))) +
   theme(axis.text.y = element_blank(),
         plot.margin = unit(c(0.2,-0.4,0.2,0.2), "cm")) +
@@ -184,8 +184,8 @@ g2 <- ggplot(tempo2, aes(x = fuente, y = nom_ent, fill = diferencia, width =0.4)
   geom_tile() +
   tema +
   scale_fill_gradientn(colours = c("red","white","green"), 
-                       values = rescale(c(-700,0,4600)),
-                       guide = "colorbar", limits=c(-700,4600)) +
+                       values = rescale(c(-1400,0,4600)),
+                       guide = "colorbar", limits=c(-1400,4600)) +
   geom_text(aes(label = round(diferencia, digits = 2))) +
   theme(axis.text.y = element_blank(),
         plot.margin = unit(c(0.2,-0.4,0.2,0.2), "cm")) +
@@ -222,16 +222,20 @@ tempo <- base %>%
   group_by(year,fuente) %>% 
   summarise(tot = sum(cuenta, na.rm = T)) %>% 
   ungroup() %>% 
-  distinct ()
+  distinct () %>% 
+  pivot_wider(names_from = fuente, values_from = tot) 
 
- ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
-  geom_line() +
-  scale_color_viridis(discrete = TRUE, option = "cividis") +
-   labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
-         subtitle = "Por fuente  (2000 - 2018)",
-         caption = "Fuente: CENAPI y RNPDNO",
-         x = "", y = "") +
-  tema
+ ggplot(tempo, aes(x = as.numeric(year), y = RNPEDNO)) +
+  geom_line(aes(y = RNPEDNO,  color = "RNPDNO")) +
+  geom_line(aes(y = CENAPI, color = "CENAPI")) +
+  scale_color_manual(values = c('RNPDNO' = 'midnightblue','CENAPI' = 'purple')) +
+  labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
+        subtitle = "Por fuente  (2000 - 2018)",
+        caption = "Fuente: CENAPI y RNPDNO",
+        x = "", y = "", color = "Fuente") +
+  geom_ribbon(aes(ymin=CENAPI, ymax=RNPEDNO), fill = "lightyellow" , alpha = .5) +
+  tema 
+  
  
  ggsave(g_output$g_6, height = 12, width = 12)
 
@@ -241,16 +245,19 @@ tempo <- base %>%
    group_by(year, fuente, sexo) %>% 
    summarise(tot = sum(cuenta, na.rm = T)) %>% 
    ungroup() %>% 
-   distinct ()
+   distinct () %>% 
+   pivot_wider(names_from = fuente, values_from = tot) 
  
- ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
-   geom_line() +
+ ggplot(tempo, aes(x = as.numeric(year), y = RNPEDNO)) +
+   geom_line(aes(y = RNPEDNO,  color = "RNPDNO")) +
+   geom_line(aes(y = CENAPI, color = "CENAPI")) +
    facet_wrap(~sexo) +
-   scale_color_viridis(discrete = TRUE, option = "cividis") +
+   scale_color_manual(values = c('RNPDNO' = 'midnightblue','CENAPI' = 'purple')) +
    labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
          subtitle = "Por sexo y fuente  (2000 - 2018)",
          caption = "Fuente: CENAPI y RNPDNO",
-         x = "", y = "") +
+         x = "", y = "", color = "Fuente") +
+   geom_ribbon(aes(ymin=CENAPI, ymax=RNPEDNO), fill = "lightyellow" , alpha = .5) +
    tema
  
  ggsave(g_output$g_7, height = 12, width = 12)
@@ -262,37 +269,42 @@ tempo <- base %>%
    group_by(year, fuente, status) %>% 
    summarise(tot = sum(cuenta, na.rm = T)) %>% 
    ungroup() %>% 
-   distinct ()
+   distinct () %>% 
+   pivot_wider(names_from = fuente, values_from = tot) 
  
- ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
-   geom_line() +
+ ggplot(tempo, aes(x = as.numeric(year), y = RNPEDNO)) +
+   geom_line(aes(y = RNPEDNO,  color = "RNPDNO")) +
+   geom_line(aes(y = CENAPI, color = "CENAPI")) +
    facet_wrap(~status) +
-   scale_color_viridis(discrete = TRUE, option = "cividis") +
+   scale_color_manual(values = c('RNPDNO' = 'midnightblue','CENAPI' = 'purple')) +
    labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
-         subtitle = "Por sexo y fuente  (2000 - 2018)",
+         subtitle = "Por status y fuente  (2000 - 2018)",
          caption = "Fuente: CENAPI y RNPDNO",
-         y = "", x ="") +
+         x = "", y = "", color = "Fuente") +
+   geom_ribbon(aes(ymin=CENAPI, ymax=RNPEDNO), fill = "lightyellow" , alpha = .5) +
    tema
- 
  ggsave(g_output$g_8, height = 12, width = 12)
 
  #facetwrapeamos por entidad
  
- tempo <- base %>% 
+ tempo <- base  %>% 
    filter(nom_ent != "No Determinado") %>% 
    group_by(year, fuente, nom_ent2) %>% 
    summarise(tot = sum(cuenta, na.rm = T)) %>% 
    ungroup() %>% 
-   distinct ()
+   distinct () %>% 
+   pivot_wider(names_from = fuente, values_from = tot) 
  
- ggplot(tempo, aes(x = year, y = tot, group = fuente, color = fuente)) +
-   geom_line() +
+ ggplot(tempo, aes(x = as.numeric(year), y = RNPEDNO)) +
+   geom_line(aes(y = RNPEDNO,  color = "RNPDNO")) +
+   geom_line(aes(y = CENAPI, color = "CENAPI")) +
    facet_wrap(~nom_ent2, nrow = 4) +
-   scale_color_viridis(discrete = TRUE, option = "cividis") +
    labs (title = "Personas desaparecidas, localizadas con o sin vida registradas",
          subtitle = "Por sexo y fuente  (2000 - 2018)",
          caption = "Fuente: CENAPI y RNPDNO",
-         x = "", y = "") +
+         x = "", y = "", color = "Fuente") +
+   scale_color_manual(values = c('RNPDNO' = 'midnightblue','CENAPI' = 'purple')) +
+   geom_ribbon(aes(ymin=CENAPI, ymax=RNPEDNO), fill = "lightyellow" , alpha = .5) +
    tema +
    theme(axis.text.x = element_text(angle = 90))
  
