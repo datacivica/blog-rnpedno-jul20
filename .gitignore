@@ -1,0 +1,17 @@
+# Mac files
+.DS_Store
+
+# R history
+.Rhistory
+.Rapp.history
+
+# R Projects and user data
+.Ruserdata
+.Rproj.user/
+
+# Icon files
+Icon
+Icon\r
+Icon\r\r
+
+
