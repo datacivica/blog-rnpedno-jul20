@@ -12,18 +12,16 @@ HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')
 
 .PHONY: all clean
 
-all: output/poblacion.rds \
-	 output/cenapi.rds \
+all: output/cenapi.rds \
 	 output/rnpdno.rds
 
 clean:
 	rm output/*
 
-output/poblacion.rds output/cenapi.rds output/rnpdno.rds: \
+output/cenapi.rds output/rnpdno.rds: \
 		src/clean.R \
 		$(HERE)/import/output/cenapi.rds \
 		$(HERE)/import/output/nombre-entidad.rds \
-		$(HERE)/import/output/poblacion.rds \
 		$(HERE)/import/output/rnpdno.rds 
 	Rscript --vanilla $<
 

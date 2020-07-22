@@ -14,7 +14,6 @@ HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')
 
 all: output/cenapi.rds \
 	 output/nombre-entidad.rds \
-	 output/poblacion.rds \
 	 output/rnpdno.rds
 
 clean:
@@ -24,7 +23,6 @@ INPUTS := $(shell find $(HERE)/import/input -name '*.csv')
 
 OUTPUTS := output/cenapi.rds \
 	 output/nombre-entidad.rds \
-	 output/poblacion.rds \
 	 output/rnpdno.rds
 
 $(OUTPUTS): src/import.R $(INPUTS)

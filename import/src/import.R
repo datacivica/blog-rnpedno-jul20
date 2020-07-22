@@ -13,7 +13,6 @@ pacman::p_load(tidyverse, janitor, data.table, readxl, stringr, here)
 file_paths = list(input = here("import/input/"),
                   cenapi = here("import/output/cenapi.rds"),
                   nom_ent = here("import/output/nombre-entidad.rds"),
-                  pob = here("import/output/poblacion.rds"),
                   rnpdno = here("import/output/rnpdno.rds")
                   )
 
@@ -39,17 +38,6 @@ nom_ent <- fread(paste0(file_paths$input, "nombres-entidades.csv")) %>%
          nom_ent = nombre_de_la_entidad_federativa) %>% 
   mutate(cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"))
 saveRDS(nom_ent, file_paths$nom_ent)
-
-
-# === POBLACION === #
-print("working on poblacion")
-pob <- fread(paste0(file_paths$input, "pob-mit-proyecciones.csv")) %>%
-  clean_names() %>% 
-  rename(year = ano,
-         nom_ent = entidad,
-         cve_ent = cve_geo) %>% 
-  mutate(cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"))
-saveRDS(pob, file_paths$pob)
 
 
 # === RNPDNO === #

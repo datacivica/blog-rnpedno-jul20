@@ -12,9 +12,7 @@ pacman::p_load(tidyverse, janitor, lubridate, stringr, here)
 # === File paths === #
 files <- list(inp_cenapi = here("import/output/cenapi.rds"),
               inp_noment = here("import/output/nombre-entidad.rds"),
-              inp_pob = here("import/output/poblacion.rds"),
               inp_rnpdno = here("import/output/rnpdno.rds"),
-              out_pob = here("clean-data/output/poblacion.rds"),
               out_cenapi = here("clean-data/output/cenapi.rds"),
               out_rnpdno = here("clean-data/output/rnpdno.rds")
               )
@@ -22,23 +20,6 @@ files <- list(inp_cenapi = here("import/output/cenapi.rds"),
 noment <- readRDS(files$inp_noment)
 
 keep_years <- 2000:2018
-
-
-# === Poblacion === #
-pob <- readRDS(files$inp_pob) %>% 
-  filter(year %in% keep_years & 
-         cve_ent!="00" &
-         edad!=0) %>% 
-  mutate(grupo_edad = case_when(edad < 12 ~ "Menos de 12 años",
-                                edad %in% 12:17  ~ "De 12 a 17 años",
-                                edad %in% 18:23 ~ "De 18 a 23 años",
-                                edad %in% 24:29 ~ "De 24 a 29 años",
-                                edad %in% 30:44 ~ "De 30 a 44 años",
-                                edad %in% 45:59 ~ "De 45 a 59 años",
-                                edad>=60 ~ "60 años o más")) %>% 
-  select(-nom_ent)
-
-saveRDS(pob, files$out_pob)
 
 # === CENAPI === #
 cenapi <- readRDS(files$inp_cenapi) %>%
