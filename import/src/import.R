@@ -14,8 +14,7 @@ file_paths = list(input = here("import/input/"),
                   cenapi = here("import/output/cenapi.rds"),
                   nom_ent = here("import/output/nombre-entidad.rds"),
                   pob = here("import/output/poblacion.rds"),
-                  rnpdno_ent = here("import/output/rnpdno-ent.rds"),
-                  rnpdno_edad = here("import/output/rnpdno-edad.rds")
+                  rnpdno = here("import/output/rnpdno.rds")
                   )
 
 
@@ -53,62 +52,32 @@ pob <- fread(paste0(file_paths$input, "pob-mit-proyecciones.csv")) %>%
 saveRDS(pob, file_paths$pob)
 
 
-# === RNPDNO POR ENTIDAD === #
-print("working on rnpdno por entidad")
-rnpdno_ent_path <- paste0(file_paths$input, "rnpdno/totales/")
-rnpdno_ent_files <- dir(rnpdno_ent_path)
+# === RNPDNO === #
+print("working on rnpdno")
+rnpdno_path <- paste0(file_paths$input, "rnpdno/")
+rnpdno_files <- dir(rnpdno_path)
 
-rnpdno_ent <- data.frame()
+rnpdno <- data.frame()
 
-pb <- txtProgressBar(min=1, max=length(rnpdno_ent_files), style=3)
-for (i in 1:length(rnpdno_ent_files)) {
-  tempo <- fread(paste0(rnpdno_ent_path, rnpdno_ent_files[i])) %>% 
+pb <- txtProgressBar(min=1, max=length(rnpdno_files), style=3)
+for (i in 1:length(rnpdno_files)) {
+  tempo <- fread(paste0(rnpdno_path, rnpdno_files[i])) %>% 
     clean_names() %>% 
-    mutate(cve_ent = parse_number(rnpdno_ent_files[i]),
+    mutate(cve_ent = parse_number(rnpdno_files[i]),
            cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"),
-           estatus = str_extract(rnpdno_ent_files[i], "[^_]+"),
+           estatus = str_extract(rnpdno_files[i], "[^_]+"),
            estatus = case_when(estatus=="d" ~ "Aún sin localizar",
                                estatus=="lcv" ~ "Localizado con vida",
                                estatus=="lsv" ~ "Localizado sin vida"),
            category = as.character(category)) %>% 
     rename(year = category)
-  rnpdno_ent <- bind_rows(rnpdno_ent, tempo)
+  rnpdno <- bind_rows(rnpdno, tempo)
   rm(tempo)
   setTxtProgressBar(pb, i)
 }
 close(pb)
 rm(pb, i)
 
-saveRDS(rnpdno_ent, file_paths$rnpdno_ent)
-
-
-# === RNPDNO POR EDADES === #
-print("working on rnpdno por edades")
-rnpdno_age_path <- paste0(file_paths$input, "rnpdno/rango-edad/")
-rnpdno_age_files <- dir(rnpdno_age_path)
-
-rnpdno_edad <- data.frame()
-
-pb <- txtProgressBar(min=1, max=length(rnpdno_age_files), style=3)
-for (i in 1:length(rnpdno_age_files)) {
-  
-  tempo <- fread(paste0(rnpdno_age_path, rnpdno_age_files[i])) %>% 
-    clean_names() %>% 
-    mutate(cve_ent = parse_number(rnpdno_age_files[i]),
-           cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"),
-           estatus = str_extract(rnpdno_age_files[i], "[^_]+"),
-           estatus = case_when(estatus=="d" ~ "Aún sin localizar",
-                               estatus=="lcv" ~ "Localizado con vida",
-                               estatus=="lsv" ~ "Localizado sin vida"),
-           category = as.character(category)) %>% 
-    rename(rango_edad = category)
-  rnpdno_edad <- bind_rows(rnpdno_edad, tempo)
-  rm(tempo)
-  setTxtProgressBar(pb, i)
-}
-close(pb)
-rm(pb, i)
-
-saveRDS(rnpdno_edad, file_paths$rnpdno_edad)
+saveRDS(rnpdno, file_paths$rnpdno)
 
 # done.

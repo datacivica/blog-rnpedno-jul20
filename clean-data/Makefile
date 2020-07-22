@@ -12,22 +12,19 @@ HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')
 
 .PHONY: all clean
 
-all: output/cenapi.rds \
-	 output/nombre-entidad.rds \
-	 output/poblacion.rds \
+all: output/poblacion.rds \
+	 output/cenapi.rds \
 	 output/rnpdno.rds
 
 clean:
 	rm output/*
 
-INPUTS := $(shell find $(HERE)/import/input -name '*.csv')
-
-OUTPUTS := output/cenapi.rds \
-	 output/nombre-entidad.rds \
-	 output/poblacion.rds \
-	 output/rnpdno.rds
-
-$(OUTPUTS): src/import.R $(INPUTS)
+output/poblacion.rds output/cenapi.rds output/rnpdno.rds: \
+		src/clean.R \
+		$(HERE)/import/output/cenapi.rds \
+		$(HERE)/import/output/nombre-entidad.rds \
+		$(HERE)/import/output/poblacion.rds \
+		$(HERE)/import/output/rnpdno.rds 
 	Rscript --vanilla $<
 
 # done.
