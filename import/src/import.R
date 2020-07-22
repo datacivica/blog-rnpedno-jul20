@@ -1,111 +1,114 @@
-##!/usr/bin/env Rscript --vanilla
-# set expandtab tabstop=4 shiftwidth=4 ai fileencoding=utf-8
 #
-# Author: Alicia Franco
-# Maintainer(s): Alicia Franco, Mariana Solano
+# Author: Alicia Franco, Mariana Solano
+# Maintainer(s): Alicia Franco, Mariana Solano, Oscar Elton
 # License: (c) Data Cívica 2020
 #
-# ------------------------------------------------------------------------------------
-# rnpdno/import_rnpdno/src/import.R
+# ---------------------------------------------------------
+# blog-rnpedno-jul20/import/src/import.R
 
-require(pacman)
-p_load(tidyverse, janitor, data.table, here, readxl)
+if(!require(pacman))install.packages("pacman")
+pacman::p_load(tidyverse, janitor, data.table, readxl, stringr, here)
 
-#Inputs y outputs generales
-files_input = list(
-  cenapi = here("import/input/cenapi.csv"),
-  entidades = here("import/input/entidades_federativas.csv"),
-  abreviaciones = here("import/input/Nombres_Estados.xlsx"))
-
-files_output = list(
-  lcv =  here("import/output/lcv.rds"),
-  lsv =  here("import/output/lsv.rds"),
-  d =  here("import/output/d.rds"),
-  cenapi = here("import/output/cenapi.rds"),
-  nom_ent = here("import/output/nom_ent.rds")
-)
-
-#CENAPI
-
-cenapi <- fread(files_input$cenapi) %>% clean_names()
-saveRDS(cenapi, files_output$cenapi)
-rm(cenapi)
+# === File paths === #
+file_paths = list(input = here("import/input/"),
+                  cenapi = here("import/output/cenapi.rds"),
+                  nom_ent = here("import/output/nombre-entidad.rds"),
+                  pob = here("import/output/poblacion.rds"),
+                  rnpdno_tot = here("import/output/rnpdno-ent.rds"),
+                  rnpdno_edad = here("import/output/rnpdno-edad.rds")
+                  )
 
 
-#Nombres entidades
-nom <- read.csv(files_input$entidades) %>% clean_names() %>% 
-  rename(cve_ent = clave_de_entidad, 
-         nom_ent = nombre_de_la_entidad_federativa) %>% 
-  mutate(cve_ent = formatC(cve_ent, width = 2, flag = "0", format = "d"))
-
-abrev <- read_xlsx(files_input$abreviaciones) %>% 
+# === CENAPI === #
+print("working on CENAPI")
+cenapi <- fread(paste0(file_paths$input, "cenapi/cenapi.csv")) %>% 
   clean_names() %>% 
-  mutate(cve_ent = formatC(cve_ent, width = 2, flag = "0", format = "d"))
+  select(fecha_evento, estado, clave_estado, sexo, edad, vivo_o_muerto) %>%
+  rename(nom_ent = estado,
+         cve_ent = clave_estado,
+         estatus = vivo_o_muerto) %>% 
+  mutate(cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"))
 
-nom <- left_join(nom, abrev)
-
-saveRDS(nom, files_output$nom_ent)
-rm(nom)
-
-#RNPEDNO
-#Códigos del inegi para abrir archivos
-cod_inegi <- c(1:32) %>% formatC(width = 2, flag = "0", format = "d")
-cod_inegi <- append(cod_inegi,"99")
-
-#Vectores vacios para generar listas de archivos
-input_lcv <- vector(mode = "list")
-input_lsv <- vector(mode = "list")
-input_d <- vector(mode = "list")
+saveRDS(cenapi, file_paths$cenapi)
 
 
-# Files de localizados con vida (lcv)
-for (i in cod_inegi) {
-  input_lcv[[i]] <- here(paste0("import/input/lcv/lcv_",i,".csv"))
-} 
-
-#Abrir todas lcv y pegarlas
-lcv_data <- data.frame()
-for (i in cod_inegi) {
-  data <- read.csv(input_lcv[[i]]) %>% clean_names() %>% 
-    mutate(inegi = i, status = "localizado con vida")
-  lcv_data <- rbind(lcv_data, data) 
-} 
-rm(input_lcv)
+# === NOMBRES DE ENTIDADES === #
+print("working on nombres entidades")
+nom_ent <- fread(paste0(file_paths$input, "nombres-entidades.csv")) %>%
+  clean_names() %>% 
+  rename(cve_ent = clave_de_entidad,
+         nom_ent = nombre_de_la_entidad_federativa) %>% 
+  mutate(cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"))
+saveRDS(nom_ent, file_paths$nom_ent)
 
 
-# Files de localizados sin vida (lsv)
-for (i in cod_inegi) {
-  input_lsv[[i]] <- here(paste0("import/input/lsv/lsv_",i,".csv"))
-} 
-
-#Abrir todas lsv y pegarlas
-lsv_data <- data.frame()
-for (i in cod_inegi) {
-  data <- read.csv(input_lsv[[i]]) %>% clean_names() %>% 
-    mutate(inegi = i, status = "localizado sin vida")
-  lsv_data <- rbind(lsv_data, data)
-} 
-rm(input_lsv)
-#Salen 3 warnings de lsv_04, lsv_08 y lsv_99 pero sí las está leyendo bien
+# === POBLACION === #
+print("working on poblacion")
+pob <- fread(paste0(file_paths$input, "pob-mit-proyecciones.csv")) %>%
+  clean_names() %>% 
+  rename(year = ano,
+         nom_ent = entidad,
+         cve_ent = cve_geo) %>% 
+  mutate(cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"))
+saveRDS(pob, file_paths$pob)
 
 
-# Files de desaparecidos y no localizados (d)
-for (i in cod_inegi) {
-  input_d[[i]] <- here(paste0("import/input/d/d_",i,".csv"))
-} 
+# === RNPDNO POR ENTIDAD === #
+print("working on rnpdno por entidad")
+rnpdno_tot_path <- paste0(file_paths$input, "rnpdno/totales/")
+rnpdno_tot_files <- dir(rnpdno_tot_path)
 
-#Abrir todas las d_ y pegarlas
-d_data <- data.frame()
-for (i in cod_inegi) {
-  data <- read.csv(input_d[[i]]) %>% clean_names() %>% 
-    mutate(inegi = i, status = "desaparecidos")
-  d_data <- rbind(d_data, data)
-} 
-rm(input_d)
+rnpdno_tot <- data.frame()
+
+pb <- txtProgressBar(min=1, max=length(rnpdno_tot_files), style=3)
+for (i in 1:length(rnpdno_tot_files)) {
+  tempo <- fread(paste0(rnpdno_tot_path, rnpdno_tot_files[i])) %>% 
+    clean_names() %>% 
+    mutate(cve_ent = parse_number(rnpdno_tot_files[i]),
+           cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"),
+           estatus = str_extract(rnpdno_tot_files[i], "[^_]+"),
+           estatus = case_when(estatus=="d" ~ "Aún sin localizar",
+                               estatus=="lcv" ~ "Localizado con vida",
+                               estatus=="lsv" ~ "Localizado sin vida"),
+           category = as.character(category)) %>% 
+    rename(year = category)
+  rnpdno_tot <- bind_rows(rnpdno_tot, tempo)
+  rm(tempo)
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+rm(pb, i)
+
+saveRDS(rnpdno_tot, file_paths$rnpdno_tot)
 
 
-#Guardar todo como rds
+# === RNPDNO POR EDADES === #
+print("working on rnpdno por edades")
+rnpdno_age_path <- paste0(file_paths$input, "rnpdno/rango-edad/")
+rnpdno_age_files <- dir(rnpdno_age_path)
 
-saveRDS(lcv_data, files_output$lcv)
-saveRDS(lsv_data, files_output$lsv)
-saveRDS(d_data, files_output$d)
+rnpdno_edad <- data.frame()
+
+pb <- txtProgressBar(min=1, max=length(rnpdno_tot_files), style=3)
+for (i in 1:length(rnpdno_tot_files)) {
+  
+  tempo <- fread(paste0(rnpdno_age_path, rnpdno_age_files[i])) %>% 
+    clean_names() %>% 
+    mutate(cve_ent = parse_number(rnpdno_tot_files[i]),
+           cve_ent = formatC(cve_ent, width = 2, flag = 0, format = "d"),
+           estatus = str_extract(rnpdno_tot_files[i], "[^_]+"),
+           estatus = case_when(estatus=="d" ~ "Aún sin localizar",
+                               estatus=="lcv" ~ "Localizado con vida",
+                               estatus=="lsv" ~ "Localizado sin vida"),
+           category = as.character(category)) %>% 
+    rename(rango_edad = category)
+  rnpdno_edad <- bind_rows(rnpdno_edad, tempo)
+  rm(tempo)
+  setTxtProgressBar(pb, i)
+}
+close(pb)
+rm(pb, i)
+
+saveRDS(rnpdno_edad, file_paths$rnpdno_edad)
+
+# done.
