@@ -8,6 +8,7 @@
 # R Projects and user data
 .Ruserdata
 .Rproj.user/
+.RData
 
 # Icon files
 Icon
