@@ -3,9 +3,9 @@
 # Maintainer(s): OE, MS, AF
 # License: (c) Data Cívica 2020
 #
-# ------------------------------------
+# --------------------------------------
 #
-# blog-rnpedno-jul20/import/Makefile
+# blog-rnpedno-jul20/clean-data/Makefile
 #
 
 HERE := $(shell Rscript --vanilla -e 'write(here::here(), stdout())')

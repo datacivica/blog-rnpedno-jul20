@@ -66,7 +66,8 @@ rnpdno <- readRDS(files$inp_rnpdno) %>%
          Indeterminados = indeterminado) %>% 
   pivot_longer(cols = -c(year, cve_ent, estatus),
                names_to = "sexo",
-               values_to = "tot_desp") %>% 
+               values_to = "tot_desp") %>%
+  filter(year %in% keep_years) %>% 
   left_join(noment)
 
 saveRDS(rnpdno, files$out_rnpdno)
