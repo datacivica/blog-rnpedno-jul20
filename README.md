@@ -16,4 +16,4 @@ git lfs install
 
 ## Para clonar el repositorio
 
-git clone https://gitlab.com/datacivica/data-analysis/blog-rnpedno-jul20.git
+git clone https://github.com/datacivica/blog-rnpedno-jul20.git
